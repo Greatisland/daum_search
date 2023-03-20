@@ -74,7 +74,13 @@ const WebTab = styled.div`
   }
 `
 const ImgTab = styled.div`
-  
+  width: 400px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  a {
+    margin: 10px 0;
+  }
 `
 
 
@@ -140,7 +146,7 @@ function App() {
   const BaseURL = 'https://dapi.kakao.com/v2/search/'
 
   const searchFunction = async() => {
-    const webData = await fetch(`${BaseURL}web?sort=accuracy&page=1&size=5&query=${keyword}`, {
+    const webData = await fetch(`${BaseURL}web?sort=accuracy&page=1&size=10&query=${keyword}`, {
       headers: {
         Authorization: `KakaoAK ${apiKey}`,
       },
@@ -148,14 +154,13 @@ function App() {
     const webJson = await webData.json()
     setWebResult(webJson)
 
-    const imgData = await fetch(`${BaseURL}image?sort=accuracy&page=1&size=5&query=${keyword}`, {
+    const imgData = await fetch(`${BaseURL}image?sort=accuracy&page=1&size=15&query=${keyword}`, {
       headers: {
         Authorization: `KakaoAK ${apiKey}`,
       },
     })
     const imgJson = await imgData.json()
     setImgResult(imgJson)
-    console.log(imgJson)
   }
 
   const handlerFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -166,32 +171,32 @@ function App() {
   return (
     <Wrap>
       <GlobalStyle />
-      <h2><span>Daum</span> 웹페이지 검색 구현</h2>
+      <h2><span>Daum</span> 검색</h2>
       <form onSubmit={handlerFormSubmit}>
         <input type='text' value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="검색어 입력"></input>
       </form>
       <Tab tabs={['웹', '이미지']}>
         <WebTab>
-          {webResult?.documents?.map((val, i) => (
+          {webResult?.documents?.map((val, i) => {
+            const titleName = val.title.replace(/<(\/b|b)([^>]*)>/gi,'')
+            const contents = val.contents.replace(/<(\/b|b)([^>]*)>/gi,'')
+            return (
             <a href={val.url} key={i}>
               <ul>
-                <li style={{fontSize: '18px', textAlign: 'center'}}>{val.title}</li>
-                <li>{val.contents}</li>
+                <li style={{fontSize: '18px', textAlign: 'center', fontWeight: '700'}}>{titleName}</li>
+                <li>{contents}</li>
               </ul>
             </a>
-          ))}
+          )})}
         </WebTab>
         <ImgTab>
           {imgResult?.documents?.map((val, i) => (
-            <ul key={i}>
-              <li>{val.collection}</li>
-              <li>{val.display_sitename}</li>
-              <li>{val.doc_url}</li>
-              <li>{val.image_url}</li>
-              <li>{val.thumbnail_url}</li>
-              <li>{val.width}</li>
-              <li>{val.height}</li>
-            </ul>
+            <a href={val.doc_url} key={i}>
+              <ul>
+                <li><img src={val.thumbnail_url}></img></li>
+                <li>{val.display_sitename}</li>
+              </ul>
+            </a>
           ))}
         </ImgTab>
       </Tab>
