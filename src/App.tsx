@@ -24,6 +24,9 @@ const Wrap = styled.div`
     }
   }
   form {
+    width: 100%;
+    display: flex;
+    justify-content: center;
     input {
       width: 400px;
       height: 30px;
@@ -36,9 +39,49 @@ const Wrap = styled.div`
   }
 `
 
-const ResultList = styled.div`
+const TabContaner = styled.div`
   width: 400px;
 `
+
+const TabButtonContainer = styled.div`
+  width: 400px;
+  display: flex;
+  justify-content: center;
+`
+
+const TabButton = styled.div`
+  flex: 1;
+  text-align: center;
+  border: 1px solid #333;
+  :hover {
+    cursor: pointer;
+    background: #333;
+    color: #f2f2f2;
+    }
+`
+
+const ShowContents = styled.div`
+  width: 400px;
+`
+const WebTab = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  padding: 10px 0;
+  li {
+    font-size: 12px;
+    margin: 0 0 5px 0;
+  }
+`
+const ImgTab = styled.div`
+  
+`
+
+
+
+
+
+////////////////////////////// styled_components 영역
 
 interface WebList {
   documents: DocumentsWebType[]
@@ -50,7 +93,7 @@ interface ImgList {
 
 interface DocumentsWebType {
   contents: string
-  title: string
+  title: HTMLElement
   url: string
 }
 
@@ -64,11 +107,34 @@ interface DocumentsImgType {
   height: number
 }
 
+interface TabProps {
+  tabs: string[]
+  initialIndex?: number
+  children: Element[]
+}
+
+
+//Tab Component
+const Tab: React.FC<TabProps> = ({tabs, initialIndex=0, children}) => {
+  let [activeIndex, setActiveIndex] = useState(initialIndex)
+  return (
+    <TabContaner>
+      <TabButtonContainer>
+        {tabs.map((tab, i) => (
+          <TabButton key={i} onClick={() => setActiveIndex(i)}>{tab}</TabButton>
+        ))}
+      </TabButtonContainer>
+      <ShowContents>
+        {children[activeIndex]}
+      </ShowContents>
+    </TabContaner>
+  )
+}
+
 function App() {
   let [imgResult, setImgResult] = useState<ImgList>()
   let [webResult, setWebResult] = useState<WebList>()
   let [keyword, setKeyword] = useState('')
-  let [currentTab, setCurrentTab] = useState(0)
 
   const apiKey = 'deaa5929c02757563300c7fc32c6ed62'
   const BaseURL = 'https://dapi.kakao.com/v2/search/'
@@ -89,6 +155,7 @@ function App() {
     })
     const imgJson = await imgData.json()
     setImgResult(imgJson)
+    console.log(imgJson)
   }
 
   const handlerFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -103,27 +170,31 @@ function App() {
       <form onSubmit={handlerFormSubmit}>
         <input type='text' value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="검색어 입력"></input>
       </form>
-      <ResultList>
-
-        {webResult?.documents?.map((val, i) => (
-          <ul key={i}>
-            <li>{val.title}</li>
-            <li>{val.contents}</li>
-            <li>{val.url}</li>
-          </ul>
-        ))}
-        {imgResult?.documents?.map((val, i) => (
-          <ul key={i}>
-            <li>{val.collection}</li>
-            <li>{val.display_sitename}</li>
-            <li>{val.doc_url}</li>
-            <li>{val.image_url}</li>
-            <li>{val.thumbnail_url}</li>
-            <li>{val.width}</li>
-            <li>{val.height}</li>
-          </ul>
-        ))}
-      </ResultList>
+      <Tab tabs={['웹', '이미지']}>
+        <WebTab>
+          {webResult?.documents?.map((val, i) => (
+            <a href={val.url} key={i}>
+              <ul>
+                <li style={{fontSize: '18px', textAlign: 'center'}}>{val.title}</li>
+                <li>{val.contents}</li>
+              </ul>
+            </a>
+          ))}
+        </WebTab>
+        <ImgTab>
+          {imgResult?.documents?.map((val, i) => (
+            <ul key={i}>
+              <li>{val.collection}</li>
+              <li>{val.display_sitename}</li>
+              <li>{val.doc_url}</li>
+              <li>{val.image_url}</li>
+              <li>{val.thumbnail_url}</li>
+              <li>{val.width}</li>
+              <li>{val.height}</li>
+            </ul>
+          ))}
+        </ImgTab>
+      </Tab>
     </Wrap>
   )
 }
